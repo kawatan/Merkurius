@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="t10k-images.idx3-ubyte" />
+    <None Remove="t10k-labels.idx1-ubyte" />
+    <None Remove="train-images.idx3-ubyte" />
+    <None Remove="train-labels.idx1-ubyte" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="t10k-images.idx3-ubyte" />
+    <EmbeddedResource Include="t10k-labels.idx1-ubyte" />
+    <EmbeddedResource Include="train-images.idx3-ubyte" />
+    <EmbeddedResource Include="train-labels.idx1-ubyte" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Merkurius\Merkurius.csproj" />
+  </ItemGroup>
+
+</Project>
