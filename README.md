@@ -43,6 +43,18 @@ var model = new Model(
 model.Fit(trainingList, 50);
 ```
 
+Recurrent neural network (RNN).
+
+```csharp
+var model = new Model(
+  new Recurrent(1, 128, 10, true, false, (fanIn, fanOut) => Initializers.LecunNormal(fanIn),
+  new FullyConnected(128, 10, (fanIn, fanOut) => Initializers.LecunNormal(fanIn),
+  new Activation(10, new Identity()))),
+  new SGD(), new MeanSquaredError());
+
+model.Fit(trainingList, 50);
+```
+
 ## Features
 
 * Inference
