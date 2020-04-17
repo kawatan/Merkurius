@@ -26,7 +26,7 @@ To build Merkurius, run .NET Core CLI command.
 > dotnet build Merkurius.csproj
 ```
 
-## Example
+## Examples
 
 Convolutional neural network (CNN).
 
