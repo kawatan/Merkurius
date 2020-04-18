@@ -47,8 +47,8 @@ Recurrent neural network (RNN).
 
 ```csharp
 var model = new Model(
-  new Recurrent(1, 128, 10, true, false, (fanIn, fanOut) => Initializers.LecunNormal(fanIn),
-  new FullyConnected(128, 10, (fanIn, fanOut) => Initializers.LecunNormal(fanIn),
+  new Recurrent(1, 128, 10, true, false, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
+  new FullyConnected(128, 10, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
   new Activation(10, new Identity()))),
   new SGD(), new MeanSquaredError());
 
