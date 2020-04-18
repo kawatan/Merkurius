@@ -1,6 +1,6 @@
 # Merkurius
 
-This repository contains the portable deep learning (deep neural networks) library implementation for .NET platform. This library supports inference and training. Furthermore, All codes are written in C#.
+This repository contains the portable deep learning (deep neural networks) library implementation for .NET platform. This library supports inference and training. Furthermore, all codes are written in C#.
 
 ![](https://github.com/milchchan/Merkurius/workflows/.NET%20Core/badge.svg)
 
