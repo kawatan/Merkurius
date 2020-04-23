@@ -112,12 +112,12 @@ namespace Merkurius
             }
         }
 
-        public void Fit(IEnumerable<Tuple<double[], double[]>> collection, int epochs, int batchSize = 32)
+        public void Fit(IEnumerable<ValueTuple<double[], double[]>> collection, int epochs, int batchSize = 32)
         {
-            Fit(collection, epochs, batchSize, (x, y) => x.Sample<Tuple<double[], double[]>>(this.random, y));
+            Fit(collection, epochs, batchSize, (x, y) => x.Sample<ValueTuple<double[], double[]>>(this.random, y));
         }
 
-        public void Fit(IEnumerable<Tuple<double[], double[]>> collection, int epochs, int batchSize, Func<IEnumerable<Tuple<double[], double[]>>, int, IEnumerable<Tuple<double[], double[]>>> func)
+        public void Fit(IEnumerable<ValueTuple<double[], double[]>> collection, int epochs, int batchSize, Func<IEnumerable<ValueTuple<double[], double[]>>, int, IEnumerable<ValueTuple<double[], double[]>>> func)
         {
             // Backpropagation
             int dataSize = collection.Count();
@@ -131,7 +131,7 @@ namespace Merkurius
 
                 do
                 {
-                    var dataTuple = func(collection, Math.Min(remaining, batchSize)).Aggregate<Tuple<double[], double[]>, Tuple<List<double[]>, List<double[]>>>(Tuple.Create<List<double[]>, List<double[]>>(new List<double[]>(), new List<double[]>()), (tuple1, tuple2) =>
+                    var dataTuple = func(collection, Math.Min(remaining, batchSize)).Aggregate<ValueTuple<double[], double[]>, Tuple<List<double[]>, List<double[]>>>(Tuple.Create<List<double[]>, List<double[]>>(new List<double[]>(), new List<double[]>()), (tuple1, tuple2) =>
                     {
                         tuple1.Item1.Add(tuple2.Item1);
                         tuple1.Item2.Add(tuple2.Item2);
@@ -141,18 +141,18 @@ namespace Merkurius
                     int index = 0;
                     int identifier = 0;
                     var targets = new Batch<double[]>(dataTuple.Item2);
-                    var tuples = Backward(Forward(new Batch<double[]>(dataTuple.Item1), targets, true).Item1, targets);
+                    var layers = Backward(Forward(new Batch<double[]>(dataTuple.Item1), targets, true).Item1, targets);
 
                     // Weight decay
-                    foreach (var tuple in tuples)
+                    foreach (var layer in layers)
                     {
-                        tuple.SetGradients((x, y, z) => x ? y + this.weightDecayRate * tuple.Weights[z] : y);
+                        layer.SetGradients((x, y, z) => x ? y + this.weightDecayRate * layer.Weights[z] : y);
                     }
 
                     if (this.maxGradient.HasValue)
                     {
                         // Gradient clipping
-                        var vectors = from tuple in tuples let batch = tuple.GetGradients() from vector in batch select vector;
+                        var vectors = from tuple in layers let batch = tuple.GetGradients() from vector in batch select vector;
                         double sum = 0.0;
 
                         foreach (var gradient in from vector in vectors from gradient in vector select gradient)
@@ -174,9 +174,9 @@ namespace Merkurius
                         }
                     }
 
-                    foreach (var tuple in tuples)
+                    foreach (var layer in layers)
                     {
-                        tuple.Update(tuple.GetGradients(), (weight, gradient) => optimizer.Optimize(identifier++, weight, gradient));
+                        layer.Update(layer.GetGradients(), (weight, gradient) => optimizer.Optimize(identifier++, weight, gradient));
                         index++;
                     }
 
@@ -208,7 +208,7 @@ namespace Merkurius
             return inputs[0];
         }
 
-        private double GetLoss(IEnumerable<Tuple<double[], double[]>> collection)
+        private double GetLoss(IEnumerable<ValueTuple<double[], double[]>> collection)
         {
             double sum = 0.0;
             int size = collection.Count();

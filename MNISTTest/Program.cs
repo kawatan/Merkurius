@@ -38,8 +38,8 @@ namespace MNISTTest
             var assembly = Assembly.GetExecutingAssembly();
             var filename = "CNN.xml";
             var serializer = new DataContractSerializer(typeof(IEnumerable<Layer>), new Type[] { typeof(Convolution), typeof(BatchNormalization), typeof(Activation), typeof(ReLU), typeof(MaxPooling), typeof(FullyConnected), typeof(Dropout), typeof(Softmax) });
-            var trainingList = new List<Tuple<double[], double[]>>();
-            var testList = new List<Tuple<double[], double[]>>();
+            var trainingList = new List<ValueTuple<double[], double[]>>();
+            var testList = new List<ValueTuple<double[], double[]>>();
             var accuracyList = new List<double>();
             var lossList = new List<double>();
             var logPath = "Log.csv";
@@ -77,7 +77,7 @@ namespace MNISTTest
                         }
                     }
 
-                    trainingList.Add(Tuple.Create<double[], double[]>(image.Normalize(), t));
+                    trainingList.Add(ValueTuple.Create<double[], double[]>(image.Normalize(), t));
                 }
             }
 
@@ -101,7 +101,7 @@ namespace MNISTTest
                         }
                     }
 
-                    testList.Add(Tuple.Create<double[], double[]>(image.Normalize(), t));
+                    testList.Add(ValueTuple.Create<double[], double[]>(image.Normalize(), t));
                 }
             }
 

@@ -33,7 +33,7 @@ namespace SineWaveTest
 
             var filename = "SineWave.xml";
             var serializer = new DataContractSerializer(typeof(IEnumerable<Layer>), new Type[] { typeof(LSTM), typeof(HyperbolicTangent), typeof(Sigmoid), typeof(FullyConnected), typeof(Activation), typeof(Identity) });
-            var trainingDataList = new List<Tuple<double[], double[]>>();
+            var trainingDataList = new List<ValueTuple<double[], double[]>>();
             var dataSize = 100;
             var maxLength = 200;
             Model model;
@@ -49,7 +49,7 @@ namespace SineWaveTest
                     y[k] = Math.Sin((j + k + maxLength) * 0.01 * Math.PI);
                 }
 
-                trainingDataList.Add(Tuple.Create<double[], double[]>(x, y));
+                trainingDataList.Add(ValueTuple.Create<double[], double[]>(x, y));
             }
 
             if (File.Exists(filename))

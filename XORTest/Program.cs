@@ -34,15 +34,15 @@ namespace XORTest
 
             var filename = "XOR.xml";
             var serializer = new DataContractSerializer(typeof(IEnumerable<Layer>), new Type[] { typeof(FullyConnected), typeof(Activation), typeof(Sigmoid) });
-            var patternList = new List<Tuple<double[], double[]>>();
+            var patternList = new List<ValueTuple<double[], double[]>>();
             var accuracyList = new List<double>();
             var lossList = new List<double>();
             Model model;
 
-            patternList.Add(Tuple.Create<double[], double[]>(new double[] { 0, 0 }, new double[] { 0 }));
-            patternList.Add(Tuple.Create<double[], double[]>(new double[] { 0, 1 }, new double[] { 1 }));
-            patternList.Add(Tuple.Create<double[], double[]>(new double[] { 1, 0 }, new double[] { 1 }));
-            patternList.Add(Tuple.Create<double[], double[]>(new double[] { 1, 1 }, new double[] { 0 }));
+            patternList.Add(ValueTuple.Create<double[], double[]>(new double[] { 0, 0 }, new double[] { 0 }));
+            patternList.Add(ValueTuple.Create<double[], double[]>(new double[] { 0, 1 }, new double[] { 1 }));
+            patternList.Add(ValueTuple.Create<double[], double[]>(new double[] { 1, 0 }, new double[] { 1 }));
+            patternList.Add(ValueTuple.Create<double[], double[]>(new double[] { 1, 1 }, new double[] { 0 }));
 
             if (File.Exists(filename))
             {
