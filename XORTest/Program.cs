@@ -48,7 +48,7 @@ namespace XORTest
             {
                 using (XmlReader xmlReader = XmlReader.Create(filename))
                 {
-                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new Momentum(0.5, 0.1), new MeanSquaredError());
+                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new MeanSquaredError());
                 }
             }
             else
@@ -60,7 +60,7 @@ namespace XORTest
                     new FullyConnected(2, (fanIn, fanOut) => RandomProvider.GetRandom().NextDouble(),
                     new Activation(new Sigmoid(),
                     new FullyConnected(2, 1, (fanIn, fanOut) => RandomProvider.GetRandom().NextDouble()))),
-                    new Momentum(0.5, 0.1), new MeanSquaredError());
+                    new MeanSquaredError());
                 model.Stepped += (sender, e) =>
                 {
                     double tptn = 0.0;
@@ -91,7 +91,7 @@ namespace XORTest
 
                 var stopwatch = Stopwatch.StartNew();
 
-                model.Fit(patternList, epochs);
+                model.Fit(patternList, epochs, 32, new Momentum(0.5, 0.1));
 
                 stopwatch.Stop();
 

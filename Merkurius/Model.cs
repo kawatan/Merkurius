@@ -14,7 +14,6 @@ namespace Merkurius
         private Random random = null;
         private Collection<Layer> layerCollection = null;
         private double loss = 0.0;
-        private IOptimizer optimizer = null;
         private ILossFunction lossFunction = null;
         private double weightDecayRate = 0.0;
         private double? maxGradient = null;
@@ -32,14 +31,6 @@ namespace Merkurius
             get
             {
                 return this.loss;
-            }
-        }
-
-        public IOptimizer Optimizer
-        {
-            get
-            {
-                return this.optimizer;
             }
         }
 
@@ -75,13 +66,12 @@ namespace Merkurius
             }
         }
 
-        public Model(Layer inputLayer, IOptimizer optimizer, ILossFunction lossFunction)
+        public Model(Layer inputLayer, ILossFunction lossFunction)
         {
             var layer = inputLayer;
 
             this.random = RandomProvider.GetRandom();
             this.layerCollection = new Collection<Layer>();
-            this.optimizer = optimizer;
             this.lossFunction = lossFunction;
 
             do
@@ -91,11 +81,10 @@ namespace Merkurius
             } while (layer != null);
         }
 
-        public Model(IEnumerable<Layer> collection, IOptimizer optimizer, ILossFunction lossFunction)
+        public Model(IEnumerable<Layer> collection, ILossFunction lossFunction)
         {
             this.random = RandomProvider.GetRandom();
             this.layerCollection = new Collection<Layer>();
-            this.optimizer = optimizer;
             this.lossFunction = lossFunction;
 
             foreach (Layer layer in collection)
@@ -112,12 +101,12 @@ namespace Merkurius
             }
         }
 
-        public void Fit(IEnumerable<ValueTuple<double[], double[]>> collection, int epochs, int batchSize = 32)
+        public void Fit(IEnumerable<ValueTuple<double[], double[]>> collection, int epochs, int batchSize, IOptimizer optimizer)
         {
-            Fit(collection, epochs, batchSize, (x, y) => x.Sample<ValueTuple<double[], double[]>>(this.random, y));
+            Fit(collection, epochs, batchSize, (x, y) => x.Sample<ValueTuple<double[], double[]>>(this.random, y), optimizer);
         }
 
-        public void Fit(IEnumerable<ValueTuple<double[], double[]>> collection, int epochs, int batchSize, Func<IEnumerable<ValueTuple<double[], double[]>>, int, IEnumerable<ValueTuple<double[], double[]>>> func)
+        public void Fit(IEnumerable<ValueTuple<double[], double[]>> collection, int epochs, int batchSize, Func<IEnumerable<ValueTuple<double[], double[]>>, int, IEnumerable<ValueTuple<double[], double[]>>> func, IOptimizer optimizer)
         {
             // Backpropagation
             int dataSize = collection.Count();

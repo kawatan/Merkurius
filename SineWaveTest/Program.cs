@@ -56,7 +56,7 @@ namespace SineWaveTest
             {
                 using (XmlReader xmlReader = XmlReader.Create(filename))
                 {
-                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new SGD(), new MeanSquaredError());
+                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new MeanSquaredError());
                 }
             }
             else
@@ -68,7 +68,7 @@ namespace SineWaveTest
                     new LSTM(1, 128, maxLength, true, false, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
                     new FullyConnected(128, maxLength, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
                     new Activation(maxLength, new Identity()))),
-                    new SGD(), new MeanSquaredError());
+                    new MeanSquaredError());
                 model.Stepped += (sender, args) =>
                 {
                     if (iterations % 10 == 0)
@@ -83,7 +83,7 @@ namespace SineWaveTest
 
                 var stopwatch = Stopwatch.StartNew();
 
-                model.Fit(trainingDataList, epochs, 10);
+                model.Fit(trainingDataList, epochs, 10, new SGD());
 
                 stopwatch.Stop();
 

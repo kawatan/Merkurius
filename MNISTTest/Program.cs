@@ -109,7 +109,7 @@ namespace MNISTTest
             {
                 using (XmlReader xmlReader = XmlReader.Create(filename))
                 {
-                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new Adam(), new SoftmaxCrossEntropy());
+                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new SoftmaxCrossEntropy());
                 }
             }
             else
@@ -126,7 +126,7 @@ namespace MNISTTest
                     new Dropout(0.5,
                     new FullyConnected(100, (fanIn, fanOut) => Initializers.GlorotNormal(fanIn, fanOut),
                     new Dropout(10, 0.5)))))))),
-                    new Adam(), new SoftmaxCrossEntropy());
+                    new SoftmaxCrossEntropy());
                 //model.WeightDecayRate = 0.1;
                 model.Stepped += (sender, e) =>
                 {
@@ -155,7 +155,7 @@ namespace MNISTTest
 
                 var stopwatch = Stopwatch.StartNew();
 
-                model.Fit(trainingList, epochs, 100);
+                model.Fit(trainingList, epochs, 100, new Adam());
 
                 stopwatch.Stop();
 
