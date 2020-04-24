@@ -10,7 +10,7 @@ namespace Merkurius
     namespace Layers
     {
         [DataContract]
-        public class Recurrent : Layer, IUpdatable
+        public class Recurrent : Layer, IUpdatable, IStatable
         {
             [DataMember]
             private RecurrentCore forwardRecurrent = null;
@@ -80,6 +80,15 @@ namespace Merkurius
                     }
 
                     return this.state;
+                }
+                set
+                {
+                    if (this.backwardRecurrent == null)
+                    {
+                        this.forwardRecurrent.State = value;
+                    }
+
+                    this.state = value;
                 }
             }
 
@@ -202,6 +211,8 @@ namespace Merkurius
 
                     vectorList2.Add(vector);
                 }
+
+                this.state = new Batch<double[]>(vectorList2);
 
                 return new Batch<double[]>(vectorList1);
             }
@@ -344,7 +355,7 @@ namespace Merkurius
                 [DataMember]
                 private bool stateful = false;
                 private List<RecurrentCell> layerList = null;
-                private Batch<double[]> h = null;
+                private Batch<double[]> h = null; // Hidden state
                 private Batch<double[]> dh = null;
                 private double[][] gradients = null;
                 [DataMember]

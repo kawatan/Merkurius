@@ -11,7 +11,7 @@ namespace Merkurius
     {
         // Long short-term memory (LSTM)
         [DataContract]
-        public class LSTM : Layer, IUpdatable
+        public class LSTM : Layer, IUpdatable, IStatable
         {
             [DataMember]
             private LSTMCore forwardLstm = null;
@@ -21,7 +21,8 @@ namespace Merkurius
             private double[] weights = null;
             [DataMember]
             private double[] biases = null;
-            private ValueTuple<Batch<double[]>, Batch<double[]>> state = new ValueTuple<Batch<double[]>, Batch<double[]>>(null, null);
+            private Batch<double[]> hiddenState = null;
+            private Batch<double[]> cellState = null;
 
             public double[] Weights
             {
@@ -71,7 +72,7 @@ namespace Merkurius
                 }
             }
 
-            public ValueTuple<Batch<double[]>, Batch<double[]>> State
+            public Batch<double[]> State
             {
                 get
                 {
@@ -80,7 +81,38 @@ namespace Merkurius
                         return this.forwardLstm.State;
                     }
 
-                    return this.state;
+                    return this.hiddenState;
+                }
+                set
+                {
+                    if (this.backwardLstm == null)
+                    {
+                        this.forwardLstm.State = value;
+                    }
+
+                    this.hiddenState = value;
+                }
+            }
+
+            public Batch<double[]> Memory
+            {
+                get
+                {
+                    if (this.backwardLstm == null)
+                    {
+                        return this.forwardLstm.Memory;
+                    }
+
+                    return this.cellState;
+                }
+                set
+                {
+                    if (this.backwardLstm == null)
+                    {
+                        this.forwardLstm.Memory = value;
+                    }
+
+                    this.cellState = value;
                 }
             }
 
@@ -159,30 +191,30 @@ namespace Merkurius
                     this.backwardLstm.Biases[i] = this.biases[i + length];
                 }
 
-                if (this.state.Item1 != null)
+                if (this.hiddenState != null)
                 {
-                    for (int i = 0; i < this.state.Item1.Size; i++)
+                    for (int i = 0; i < this.hiddenState.Size; i++)
                     {
-                        int length = this.state.Item1[i].Length / 2;
+                        int length = this.hiddenState[i].Length / 2;
 
                         for (int j = 0; j < length; j++)
                         {
-                            this.forwardLstm.State.Item1[i][j] = this.state.Item1[i][j];
-                            this.backwardLstm.State.Item1[i][j] = this.state.Item1[i][j + length];
+                            this.forwardLstm.State[i][j] = this.hiddenState[i][j];
+                            this.backwardLstm.State[i][j] = this.hiddenState[i][j + length];
                         }
                     }
                 }
 
-                if (this.state.Item2 != null)
+                if (this.cellState != null)
                 {
-                    for (int i = 0; i < this.state.Item2.Size; i++)
+                    for (int i = 0; i < this.cellState.Size; i++)
                     {
-                        int length = this.state.Item2[i].Length / 2;
+                        int length = this.cellState[i].Length / 2;
 
                         for (int j = 0; j < length; j++)
                         {
-                            this.forwardLstm.State.Item2[i][j] = this.state.Item2[i][j];
-                            this.backwardLstm.State.Item2[i][j] = this.state.Item2[i][j + length];
+                            this.forwardLstm.Memory[i][j] = this.cellState[i][j];
+                            this.backwardLstm.Memory[i][j] = this.cellState[i][j + length];
                         }
                     }
                 }
@@ -205,33 +237,37 @@ namespace Merkurius
                     vectorList1.Add(vector);
                 }
 
-                for (int i = 0; i < this.forwardLstm.State.Item1.Size; i++)
+                for (int i = 0; i < this.forwardLstm.State.Size; i++)
                 {
-                    int length = this.forwardLstm.State.Item1[i].Length;
-                    var vector = new double[this.forwardLstm.State.Item1[i].Length + this.backwardLstm.State.Item1[i].Length];
+                    int length = this.forwardLstm.State[i].Length;
+                    var vector = new double[this.forwardLstm.State[i].Length + this.backwardLstm.State[i].Length];
 
                     for (int j = 0; j < length; j++)
                     {
-                        vector[j] = this.forwardLstm.State.Item1[i][j];
-                        vector[j + length] = this.backwardLstm.State.Item1[i][j];
+                        vector[j] = this.forwardLstm.State[i][j];
+                        vector[j + length] = this.backwardLstm.State[i][j];
                     }
 
                     vectorList2.Add(vector);
                 }
 
-                for (int i = 0; i < this.forwardLstm.State.Item2.Size; i++)
+                this.hiddenState = new Batch<double[]>(vectorList2);
+
+                for (int i = 0; i < this.forwardLstm.Memory.Size; i++)
                 {
-                    int length = this.forwardLstm.State.Item2[i].Length;
-                    var vector = new double[this.forwardLstm.State.Item2[i].Length + this.backwardLstm.State.Item2[i].Length];
+                    int length = this.forwardLstm.Memory[i].Length;
+                    var vector = new double[this.forwardLstm.Memory[i].Length + this.backwardLstm.Memory[i].Length];
 
                     for (int j = 0; j < length; j++)
                     {
-                        vector[j] = this.forwardLstm.State.Item2[i][j];
-                        vector[j + length] = this.backwardLstm.State.Item2[i][j];
+                        vector[j] = this.forwardLstm.Memory[i][j];
+                        vector[j + length] = this.backwardLstm.Memory[i][j];
                     }
 
                     vectorList3.Add(vector);
                 }
+
+                this.cellState = new Batch<double[]>(vectorList3);
 
                 return new Batch<double[]>(vectorList1);
             }
@@ -373,7 +409,8 @@ namespace Merkurius
                 private int timesteps = 0;
                 [DataMember]
                 private bool stateful = false;
-                private ValueTuple<Batch<double[]>, Batch<double[]>> state = new ValueTuple<Batch<double[]>, Batch<double[]>>(null, null);
+                private Batch<double[]> h = null; // Hidden state
+                private Batch<double[]> c = null; // Cell state or memory
                 private List<LSTMCell> layerList = null;
                 private Batch<double[]> dh = null;
                 private double[][] gradients = null;
@@ -406,11 +443,27 @@ namespace Merkurius
                     }
                 }
 
-                public ValueTuple<Batch<double[]>, Batch<double[]>> State
+                public Batch<double[]> State
                 {
                     get
                     {
-                        return this.state;
+                        return this.h;
+                    }
+                    set
+                    {
+                        this.h = value;
+                    }
+                }
+
+                public Batch<double[]> Memory
+                {
+                    get
+                    {
+                        return this.c;
+                    }
+                    set
+                    {
+                        this.c = value;
                     }
                 }
 
@@ -466,66 +519,66 @@ namespace Merkurius
 
                     if (this.stateful)
                     {
-                        if (this.state.Item1 == null && this.state.Item2 == null)
+                        if (this.h == null && this.c == null)
                         {
-                            this.state.Item1 = new Batch<double[]>(new double[inputs.Size][]);
-                            this.state.Item2 = new Batch<double[]>(new double[inputs.Size][]);
+                            this.h = new Batch<double[]>(new double[inputs.Size][]);
+                            this.c = new Batch<double[]>(new double[inputs.Size][]);
 
                             for (int i = 0; i < inputs.Size; i++)
                             {
-                                this.state.Item1[i] = new double[this.outputs];
-                                this.state.Item2[i] = new double[this.outputs];
+                                this.h[i] = new double[this.outputs];
+                                this.c[i] = new double[this.outputs];
 
                                 for (int j = 0; j < this.outputs; j++)
                                 {
-                                    this.state.Item1[i][j] = 0.0;
-                                    this.state.Item2[i][j] = 0.0;
+                                    this.h[i][j] = 0.0;
+                                    this.c[i][j] = 0.0;
                                 }
                             }
                         }
-                        else if (this.state.Item1 == null)
+                        else if (this.h == null)
                         {
-                            this.state.Item1 = new Batch<double[]>(new double[inputs.Size][]);
+                            this.h = new Batch<double[]>(new double[inputs.Size][]);
 
                             for (int i = 0; i < inputs.Size; i++)
                             {
-                                this.state.Item1[i] = new double[this.outputs];
+                                this.h[i] = new double[this.outputs];
 
                                 for (int j = 0; j < this.outputs; j++)
                                 {
-                                    this.state.Item1[i][j] = 0.0;
+                                    this.h[i][j] = 0.0;
                                 }
                             }
                         }
-                        else if (this.state.Item2 == null)
+                        else if (this.c == null)
                         {
-                            this.state.Item2 = new Batch<double[]>(new double[inputs.Size][]);
+                            this.c = new Batch<double[]>(new double[inputs.Size][]);
 
                             for (int i = 0; i < inputs.Size; i++)
                             {
-                                this.state.Item2[i] = new double[this.outputs];
+                                this.c[i] = new double[this.outputs];
 
                                 for (int j = 0; j < this.outputs; j++)
                                 {
-                                    this.state.Item2[i][j] = 0.0;
+                                    this.c[i][j] = 0.0;
                                 }
                             }
                         }
                     }
                     else
                     {
-                        this.state.Item1 = new Batch<double[]>(new double[inputs.Size][]);
-                        this.state.Item2 = new Batch<double[]>(new double[inputs.Size][]);
+                        this.h = new Batch<double[]>(new double[inputs.Size][]);
+                        this.c = new Batch<double[]>(new double[inputs.Size][]);
 
                         for (int i = 0; i < inputs.Size; i++)
                         {
-                            this.state.Item1[i] = new double[this.outputs];
-                            this.state.Item2[i] = new double[this.outputs];
+                            this.h[i] = new double[this.outputs];
+                            this.c[i] = new double[this.outputs];
 
                             for (int j = 0; j < this.outputs; j++)
                             {
-                                this.state.Item1[i][j] = 0.0;
-                                this.state.Item2[i][j] = 0.0;
+                                this.h[i][j] = 0.0;
+                                this.c[i][j] = 0.0;
                             }
                         }
                     }
@@ -547,16 +600,16 @@ namespace Merkurius
                             x[i] = vector;
                         }
 
-                        var tuple = layer.Forward(x, this.state.Item1, this.state.Item2);
+                        var tuple = layer.Forward(x, this.h, this.c);
 
-                        this.state.Item1 = tuple.Item1;
-                        this.state.Item2 = tuple.Item2;
+                        this.h = tuple.Item1;
+                        this.c = tuple.Item2;
 
                         for (int i = 0; i < inputs.Size; i++)
                         {
                             for (int j = 0, k = this.outputs * t; j < this.outputs; j++, k++)
                             {
-                                outputs[i][k] = this.state.Item1[i][j];
+                                outputs[i][k] = this.h[i][j];
                             }
                         }
 
