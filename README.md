@@ -37,10 +37,9 @@ var model = new Model(
   new MaxPooling(f, mw, mh, pw, ph,
   new FullyConnected(f * ow * oh, (fanIn, fanOut) => Initializers.HeNormal(fanIn),
   new Activation(new ReLU(),
-  new FullyConnected(100, 10, (fanIn, fanOut) => Initializers.GlorotNormal(fanIn, fanOut))))))),
-  new SoftmaxCrossEntropy());
+  new FullyConnected(100, 10, (fanIn, fanOut) => Initializers.GlorotNormal(fanIn, fanOut))))))));
 
-model.Fit(trainingList, 50, 100, new Adam());
+model.Fit(trainingList, 50, 100, new Adam(), new SoftmaxCrossEntropy());
 ```
 
 Recurrent neural network (RNN).
@@ -49,10 +48,9 @@ Recurrent neural network (RNN).
 var model = new Model(
   new Recurrent(1, 128, 10, true, false, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
   new FullyConnected(128, 10, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
-  new Activation(10, new Identity()))),
-  new MeanSquaredError());
+  new Activation(10, new Identity()))));
 
-model.Fit(trainingList, 50, 10, new SGD());
+model.Fit(trainingList, 50, 10, new SGD(), new MeanSquaredError());
 ```
 
 ## Features
