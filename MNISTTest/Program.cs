@@ -109,13 +109,14 @@ namespace MNISTTest
             {
                 using (XmlReader xmlReader = XmlReader.Create(filename))
                 {
-                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader), new SoftmaxCrossEntropy());
+                    model = new Model((IEnumerable<Layer>)serializer.ReadObject(xmlReader));
                 }
             }
             else
             {
                 int epochs = 50;
                 int iterations = 1;
+                ILossFunction lossFunction = new SoftmaxCrossEntropy();
 
                 model = new Model(
                     new Convolution(channels, imageWidth, imageHeight, filters, filterWidth, filterHeight, (fanIn, fanOut) => Initializers.HeNormal(fanIn),
@@ -125,8 +126,7 @@ namespace MNISTTest
                     new Activation(new ReLU(),
                     new Dropout(0.5,
                     new FullyConnected(100, (fanIn, fanOut) => Initializers.GlorotNormal(fanIn, fanOut),
-                    new Dropout(10, 0.5)))))))),
-                    new SoftmaxCrossEntropy());
+                    new Dropout(10, 0.5)))))))));
                 //model.WeightDecayRate = 0.1;
                 model.Stepped += (sender, e) =>
                 {
@@ -141,12 +141,13 @@ namespace MNISTTest
                     });
 
                     var accuracy = tptn / trainingList.Count;
+                    var loss = model.GetLoss(trainingList, lossFunction);
 
                     accuracyList.Add(accuracy);
-                    lossList.Add(model.Loss);
+                    lossList.Add(loss);
 
                     Console.WriteLine("Epoch {0}/{1}", iterations, epochs);
-                    Console.WriteLine("Accuracy: {0}, Loss: {1}", accuracy, model.Loss);
+                    Console.WriteLine("Accuracy: {0}, Loss: {1}", accuracy, loss);
 
                     iterations++;
                 };
@@ -155,7 +156,7 @@ namespace MNISTTest
 
                 var stopwatch = Stopwatch.StartNew();
 
-                model.Fit(trainingList, epochs, 100, new Adam());
+                model.Fit(trainingList, epochs, 100, new Adam(), lossFunction);
 
                 stopwatch.Stop();
 
