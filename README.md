@@ -38,9 +38,9 @@ var model = new Model(
   new FullyConnected(f * ow * oh, (fanIn, fanOut) => Initializers.HeNormal(fanIn),
   new Activation(new ReLU(),
   new FullyConnected(100, 10, (fanIn, fanOut) => Initializers.GlorotNormal(fanIn, fanOut))))))),
-  new Adam(), new SoftmaxCrossEntropy());
+  new SoftmaxCrossEntropy());
 
-model.Fit(trainingList, 50);
+model.Fit(trainingList, 50, 100, new Adam());
 ```
 
 Recurrent neural network (RNN).
@@ -50,9 +50,9 @@ var model = new Model(
   new Recurrent(1, 128, 10, true, false, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
   new FullyConnected(128, 10, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn),
   new Activation(10, new Identity()))),
-  new SGD(), new MeanSquaredError());
+  new MeanSquaredError());
 
-model.Fit(trainingList, 50);
+model.Fit(trainingList, 50, 10, new SGD());
 ```
 
 ## Features
