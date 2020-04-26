@@ -536,32 +536,78 @@ namespace Merkurius
                                 }
                             }
                         }
-                        else if (this.h == null)
+                        else
                         {
-                            this.h = new Batch<double[]>(new double[inputs.Size][]);
-
-                            for (int i = 0; i < inputs.Size; i++)
+                            if (this.h == null)
                             {
-                                this.h[i] = new double[this.outputs];
+                                this.h = new Batch<double[]>(new double[inputs.Size][]);
 
-                                for (int j = 0; j < this.outputs; j++)
+                                for (int i = 0; i < inputs.Size; i++)
                                 {
-                                    this.h[i][j] = 0.0;
+                                    this.h[i] = new double[this.outputs];
+
+                                    for (int j = 0; j < this.outputs; j++)
+                                    {
+                                        this.h[i][j] = 0.0;
+                                    }
                                 }
                             }
-                        }
-                        else if (this.c == null)
-                        {
-                            this.c = new Batch<double[]>(new double[inputs.Size][]);
-
-                            for (int i = 0; i < inputs.Size; i++)
+                            else if (this.h.Size < inputs.Size)
                             {
-                                this.c[i] = new double[this.outputs];
+                                var batch = new Batch<double[]>(new double[inputs.Size][]);
 
-                                for (int j = 0; j < this.outputs; j++)
+                                for (int i = 0; i < this.h.Size; i++)
                                 {
-                                    this.c[i][j] = 0.0;
+                                    batch[i] = this.h[i];
                                 }
+
+                                for (int i = this.h.Size; i < inputs.Size; i++)
+                                {
+                                    batch[i] = new double[this.outputs];
+
+                                    for (int j = 0; j < this.outputs; j++)
+                                    {
+                                        batch[i][j] = 0.0;
+                                    }
+                                }
+
+                                this.h = batch;
+                            }
+
+                            if (this.c == null)
+                            {
+                                this.c = new Batch<double[]>(new double[inputs.Size][]);
+
+                                for (int i = 0; i < inputs.Size; i++)
+                                {
+                                    this.c[i] = new double[this.outputs];
+
+                                    for (int j = 0; j < this.outputs; j++)
+                                    {
+                                        this.c[i][j] = 0.0;
+                                    }
+                                }
+                            }
+                            else if (this.c.Size < inputs.Size)
+                            {
+                                var batch = new Batch<double[]>(new double[inputs.Size][]);
+
+                                for (int i = 0; i < this.c.Size; i++)
+                                {
+                                    batch[i] = this.c[i];
+                                }
+
+                                for (int i = this.c.Size; i < inputs.Size; i++)
+                                {
+                                    batch[i] = new double[this.outputs];
+
+                                    for (int j = 0; j < this.outputs; j++)
+                                    {
+                                        batch[i][j] = 0.0;
+                                    }
+                                }
+
+                                this.c = batch;
                             }
                         }
                     }

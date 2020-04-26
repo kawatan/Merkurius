@@ -464,6 +464,27 @@ namespace Merkurius
                             }
                         }
                     }
+                    else if (this.h.Size < inputs.Size)
+                    {
+                        var batch = new Batch<double[]>(new double[inputs.Size][]);
+
+                        for (int i = 0; i < this.h.Size; i++)
+                        {
+                            batch[i] = this.h[i];
+                        }
+
+                        for (int i = this.h.Size; i < inputs.Size; i++)
+                        {
+                            batch[i] = new double[this.outputs];
+
+                            for (int j = 0; j < this.outputs; j++)
+                            {
+                                batch[i][j] = 0.0;
+                            }
+                        }
+
+                        this.h = batch;
+                    }
 
                     for (int t = 0; t < this.timesteps; t++)
                     {
