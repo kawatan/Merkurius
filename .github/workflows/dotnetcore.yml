@@ -17,4 +17,5 @@ jobs:
       run: dotnet build Merkurius/Merkurius.csproj --configuration Release
     - uses: actions/upload-artifact@v2
       with:
+        name: Merkurius
         path: Merkurius/bin/**/**/*.dll
