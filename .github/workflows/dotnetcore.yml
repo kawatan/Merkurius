@@ -15,8 +15,6 @@ jobs:
         dotnet-version: 3.1.100
     - name: Build with dotnet
       run: dotnet build Merkurius/Merkurius.csproj --configuration Release
-    - uses: actions/download-artifact@v2
+    - uses: actions/upload-artifact@v2
       with:
-        path: Merkurius/bin/Release/netstandard2.1/Merkurius.dll
-    - name: Display structure of downloaded files
-      run: ls -R
+        path: Merkurius/bin/**/**/*.dll
