@@ -120,8 +120,9 @@ namespace Seq2seqTest
             var trainingDataList = new List<ValueTuple<double[], double[]>>();
             int epochs = 100;
             int iterations = 1;
-            var model = new Model(new Seq2seq());
+            var model = new Model(new Seq2seq(100, 100, 100, 256));
 
+            model.MaxGradient = 5.0;
             model.Stepped += (sender, args) =>
             {
                 if (iterations % 10 == 0)

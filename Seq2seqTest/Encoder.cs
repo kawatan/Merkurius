@@ -8,7 +8,7 @@ using Merkurius.Layers;
 namespace Seq2seqTest
 {
     [DataContract]
-    public class Encoder : Layer, IUpdatable
+    public class Encoder : Layer, IUpdatable, IStatable
     {
         [DataMember]
         private Embedding embedding = null;
@@ -29,7 +29,19 @@ namespace Seq2seqTest
             }
         }
 
-        public Encoder(int sequenceLength, int vocabularySize, int wordVectorSize, int hiddenSize = 256) : base(sequenceLength, hiddenSize)
+        public Batch<double[]> State
+        {
+            get
+            {
+                return this.recurrent.State;
+            }
+            set
+            {
+                this.recurrent.State = value;
+            }
+        }
+
+        public Encoder(int sequenceLength, int vocabularySize, int wordVectorSize, int hiddenSize) : base(sequenceLength, hiddenSize)
         {
             this.embedding = new Embedding(sequenceLength, vocabularySize, wordVectorSize, (fanIn, fanOut) => 0.01 * Initializers.LeCunNormal(fanIn));
             this.recurrent = new LSTM(wordVectorSize, hiddenSize, sequenceLength, false, false, (fanIn, fanOut) => Initializers.LeCunNormal(fanIn));
@@ -42,14 +54,12 @@ namespace Seq2seqTest
 
             for (int i = 0, j = this.embedding.Weights.Length; i < this.recurrent.Weights.Length; i++, j++)
             {
-                this.weights[j] = this.embedding.Weights[i];
+                this.weights[j] = this.recurrent.Weights[i];
             }
         }
 
         public override Batch<double[]> Forward(Batch<double[]> inputs, bool isTraining)
         {
-            var vectorList = new List<double[]>();
-
             for (int i = 0; i < this.embedding.Weights.Length; i++)
             {
                 this.embedding.Weights[i] = this.weights[i];
@@ -57,7 +67,7 @@ namespace Seq2seqTest
 
             for (int i = 0, j = this.embedding.Weights.Length; i < this.recurrent.Weights.Length; i++, j++)
             {
-                this.embedding.Weights[i] = this.weights[j];
+                this.recurrent.Weights[i] = this.weights[j];
             }
 
             return this.recurrent.Forward(this.embedding.Forward(inputs, isTraining), isTraining);
@@ -122,7 +132,7 @@ namespace Seq2seqTest
 
             for (int i = 0, j = this.embedding.Weights.Length; i < this.recurrent.Weights.Length; i++, j++)
             {
-                this.weights[j] = this.embedding.Weights[i];
+                this.weights[j] = this.recurrent.Weights[i];
             }
         }
     }
