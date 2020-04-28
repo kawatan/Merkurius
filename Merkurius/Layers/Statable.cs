@@ -2,7 +2,7 @@
 {
     namespace Layers
     {
-        interface IStatable
+        public interface IStatable
         {
             Batch<double[]> State
             {
