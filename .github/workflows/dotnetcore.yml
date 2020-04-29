@@ -18,4 +18,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: Merkurius
-        path: Merkurius/bin/Release/**/
+        path: Merkurius/bin/**/**/
