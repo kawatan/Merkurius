@@ -11,7 +11,7 @@ namespace Merkurius
     {
         // Long short-term memory (LSTM)
         [DataContract]
-        public class LSTM : Layer, IUpdatable, IStatable
+        public class LSTM : Layer, IUpdatable
         {
             [DataMember]
             private LSTMCore forwardLstm = null;
@@ -23,6 +23,7 @@ namespace Merkurius
             private double[] biases = null;
             private Batch<double[]> hiddenState = null;
             private Batch<double[]> cellState = null;
+            private Batch<double[]> deltaHiddenState = null;
 
             public double[] Weights
             {
@@ -72,6 +73,14 @@ namespace Merkurius
                 }
             }
 
+            public int Timesteps
+            {
+                get
+                {
+                    return this.forwardLstm.Timesteps;
+                }
+            }
+
             public Batch<double[]> State
             {
                 get
@@ -113,6 +122,14 @@ namespace Merkurius
                     }
 
                     this.cellState = value;
+                }
+            }
+
+            public Batch<double[]> DeltaState
+            {
+                get
+                {
+                    return this.deltaHiddenState;
                 }
             }
 
@@ -229,9 +246,9 @@ namespace Merkurius
                 {
                     var vector = new double[outputs1[i].Length];
 
-                    for (int j = 0, last = outputs1[i].Length - 1; j < outputs1[i].Length; j++)
+                    for (int j = 0; j < outputs1[i].Length; j++)
                     {
-                        vector[j] = outputs1[i][j] + outputs2[i][last - j];
+                        vector[j] = outputs1[i][j] + outputs2[i][j];
                     }
 
                     vectorList1.Add(vector);
@@ -287,12 +304,24 @@ namespace Merkurius
                 {
                     var vector = new double[dx1[i].Length];
 
-                    for (int j = 0, last = dx1[i].Length - 1; j < dx1[i].Length; j++)
+                    for (int j = 0; j < dx1[i].Length; j++)
                     {
-                        vector[j] = dx1[i][j] + dx2[i][last - j];
+                        vector[j] = dx1[i][j] + dx2[i][j];
                     }
 
                     vectorList.Add(vector);
+                }
+
+                this.deltaHiddenState = new Batch<double[]>(new double[this.forwardLstm.DeltaState.Size][]);
+
+                for (int i = 0; i < this.forwardLstm.DeltaState.Size; i++)
+                {
+                    this.deltaHiddenState[i] = new double[forwardLstm.DeltaState[i].Length];
+
+                    for (int j = 0; j < this.forwardLstm.DeltaState[i].Length; j++)
+                    {
+                        this.deltaHiddenState[i][j] = this.forwardLstm.DeltaState[i][j] + this.backwardLstm.DeltaState[i][j];
+                    }
                 }
 
                 return new Batch<double[]>(vectorList);
@@ -443,6 +472,14 @@ namespace Merkurius
                     }
                 }
 
+                public int Timesteps
+                {
+                    get
+                    {
+                        return this.timesteps;
+                    }
+                }
+
                 public Batch<double[]> State
                 {
                     get
@@ -464,6 +501,18 @@ namespace Merkurius
                     set
                     {
                         this.c = value;
+                    }
+                }
+
+                public Batch<double[]> DeltaState
+                {
+                    get
+                    {
+                        return this.dh;
+                    }
+                    set
+                    {
+                        this.dh = value;
                     }
                 }
 

@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Merkurius;
-using Merkurius.ActivationFunctions;
 using Merkurius.Layers;
 using Merkurius.LossFunctions;
 using Merkurius.Optimizers;

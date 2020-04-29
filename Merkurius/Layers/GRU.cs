@@ -11,7 +11,7 @@ namespace Merkurius
     {
         // Gated recurrent unit (GRU)
         [DataContract]
-        public class GRU : Layer, IUpdatable, IStatable
+        public class GRU : Layer, IUpdatable
         {
             [DataMember]
             private GRUCore forwardGru = null;
@@ -22,6 +22,7 @@ namespace Merkurius
             [DataMember]
             private double[] biases = null;
             private Batch<double[]> state = null;
+            private Batch<double[]> deltaState = null;
 
             public double[] Weights
             {
@@ -71,6 +72,14 @@ namespace Merkurius
                 }
             }
 
+            public int Timesteps
+            {
+                get
+                {
+                    return this.forwardGru.Timesteps;
+                }
+            }
+
             public Batch<double[]> State
             {
                 get
@@ -90,6 +99,14 @@ namespace Merkurius
                     }
 
                     this.state = value;
+                }
+            }
+
+            public Batch<double[]> DeltaState
+            {
+                get
+                {
+                    return this.deltaState;
                 }
             }
 
@@ -191,9 +208,9 @@ namespace Merkurius
                 {
                     var vector = new double[outputs1[i].Length];
 
-                    for (int j = 0, last = outputs1[i].Length - 1; j < outputs1[i].Length; j++)
+                    for (int j = 0; j < outputs1[i].Length; j++)
                     {
-                        vector[j] = outputs1[i][j] + outputs2[i][last - j];
+                        vector[j] = outputs1[i][j] + outputs2[i][j];
                     }
 
                     vectorList1.Add(vector);
@@ -233,12 +250,24 @@ namespace Merkurius
                 {
                     var vector = new double[dx1[i].Length];
 
-                    for (int j = 0, last = dx1[i].Length - 1; j < dx1[i].Length; j++)
+                    for (int j = 0; j < dx1[i].Length; j++)
                     {
-                        vector[j] = dx1[i][j] + dx2[i][last - j];
+                        vector[j] = dx1[i][j] + dx2[i][j];
                     }
 
                     vectorList.Add(vector);
+                }
+
+                this.deltaState = new Batch<double[]>(new double[this.forwardGru.DeltaState.Size][]);
+
+                for (int i = 0; i < this.forwardGru.DeltaState.Size; i++)
+                {
+                    this.deltaState[i] = new double[forwardGru.DeltaState[i].Length];
+
+                    for (int j = 0; j < this.forwardGru.DeltaState[i].Length; j++)
+                    {
+                        this.deltaState[i][j] = this.forwardGru.DeltaState[i][j] + this.backwardGru.DeltaState[i][j];
+                    }
                 }
 
                 return new Batch<double[]>(vectorList);
@@ -388,6 +417,14 @@ namespace Merkurius
                     }
                 }
 
+                public int Timesteps
+                {
+                    get
+                    {
+                        return this.timesteps;
+                    }
+                }
+
                 public Batch<double[]> State
                 {
                     get
@@ -397,6 +434,18 @@ namespace Merkurius
                     set
                     {
                         this.h = value;
+                    }
+                }
+
+                public Batch<double[]> DeltaState
+                {
+                    get
+                    {
+                        return this.dh;
+                    }
+                    set
+                    {
+                        this.dh = value;
                     }
                 }
 
